@@ -45,7 +45,7 @@ public class VentanaDelCliente extends JFrame implements Runnable, ActionListene
 
     public VentanaDelCliente(MyClient cliente, String usuario) throws IOException {
         super("crearUnirPartida");
-        
+
         this.myClient = cliente;
         this.myClient.setNombreUsuario(usuario);
         this.usuario = usuario;
@@ -66,7 +66,7 @@ public class VentanaDelCliente extends JFrame implements Runnable, ActionListene
     @Override
     public void run() {
         while (this.ejecutar) {
-            //System.out.println("");
+            System.out.println("");
             if (this.pintarArchivos < this.myClient.getArchivosCliente().size()) {
                 System.out.println("Agregue un archivo");
                 this.comboArchivos.addItem(this.myClient.getArchivosCliente().get(this.pintarArchivos) + "\n");
@@ -131,6 +131,8 @@ public class VentanaDelCliente extends JFrame implements Runnable, ActionListene
                     this.myClient.setFilename(this.nombreRuta);
                     this.myClient.setNombreEnviar(f.getName());
                     this.myClient.enviarArchivo();
+                    //this.myClient.enviarArchivo2();
+
                     this.myClient.getArchivosCliente().add(f.getName());
                     JOptionPane.showMessageDialog(null, "Archivo cargado");
                     this.setFocusable(true);
@@ -139,14 +141,19 @@ public class VentanaDelCliente extends JFrame implements Runnable, ActionListene
                 } catch (IOException ex) {
                     Logger.getLogger(VentanaDelCliente.class.getName()).log(Level.SEVERE, null, ex);
                 }
+
                 this.nombreRuta = "";
             }
         }
 
         if (e.getSource() == this.buttonVerArchivos) {
 
-            System.out.println(this.comboArchivos.getSelectedItem().toString());
-            this.myClient.pedirArchivo(this.comboArchivos.getSelectedItem().toString());
+            try {
+                // System.out.println(this.comboArchivos.getSelectedItem().toString());
+                this.myClient.pedirArchivo(this.comboArchivos.getSelectedItem().toString());
+            } catch (IOException ex) {
+                Logger.getLogger(VentanaDelCliente.class.getName()).log(Level.SEVERE, null, ex);
+            }
             JOptionPane.showMessageDialog(null, "El archivo se a guardado en su carpeta de usuario");
         }
 

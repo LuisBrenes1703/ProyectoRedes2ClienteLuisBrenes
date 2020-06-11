@@ -1,40 +1,27 @@
 package Cliente;
 
 import Entity.Usuario;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.StringReader;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
-import org.jdom.Document;
-import org.jdom.Element;
 import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
 
 public class MyClient extends Thread {
 
     private int socketPortNumber;
     private String nombreUsuario;
 
-    private PrintStream send;
-    private BufferedReader receive;
     private Socket socket;
     private InetAddress address;
     private boolean conectado;
@@ -51,12 +38,8 @@ public class MyClient extends Thread {
         this.socketPortNumber = socketPortNumber;
         this.conectado = true;
         this.address = InetAddress.getByName(ipServidor);
-
+        this.nombreUsuario = "";
         this.socket = new Socket(address, this.socketPortNumber);
-        this.send = new PrintStream(socket.getOutputStream());
-        this.receive = new BufferedReader(
-                new InputStreamReader(socket.getInputStream())
-        );
 
         this.sendArchivo = new DataOutputStream(this.socket.getOutputStream());
         this.receiveArchivo = new DataInputStream(this.socket.getInputStream());
@@ -69,10 +52,9 @@ public class MyClient extends Thread {
     @Override
     public void run() {
 
-        try {
-
-            while (this.conectado) {
-
+        //try {
+        while (this.conectado) {
+            /*
                 String mensajeServidor = receive.readLine();
 
                 Element element = stringToXML(mensajeServidor);
@@ -118,79 +100,33 @@ public class MyClient extends Thread {
             Logger.getLogger(MyClient.class.getName()).log(Level.SEVERE, null, ex);
         } catch (JDOMException ex) {
             Logger.getLogger(MyClient.class.getName()).log(Level.SEVERE, null, ex);
+             */
         }
+
     }
 
     public void logearUsuario(Usuario usuario) throws IOException, JDOMException {
 
-        Element elementoActual = generUsuaioXML(usuario);
-        Element mAccion = new Element("accion");
-        mAccion.addContent("logear");
-        elementoActual.addContent(mAccion);
-        this.send.println(xmlToString(elementoActual));
+        this.sendArchivo.writeUTF("logear");
+        this.sendArchivo.writeUTF(usuario.getNombre());
+        this.sendArchivo.writeUTF(usuario.getContraseña());
 
-    }
+        System.out.println("recibe");
+        String validar = this.receiveArchivo.readUTF();
+        System.out.println("validar: " + validar);
 
-    public void escucha() throws IOException {
-        System.out.println(leer());
-    }
+        if (validar.equals("si logueo")) {
+            System.out.println("login");
+            this.logueado = true;
+        }
 
-    public String leer() throws IOException {
-        return receive.readLine();
-    } // leer
+        int variable = this.receiveArchivo.readInt();
+        if (variable != 0) {
+            for (int i = 0; i < variable; i++) {
+                this.archivosCliente.add(this.receiveArchivo.readUTF());
+            }
+        }
 
-    private Element generUsuaioXML(Usuario usuario) {
-
-        Element mUsuario = new Element("Usuario");
-        mUsuario.setAttribute("nombre", usuario.getNombre());
-
-        Element mContrasena = new Element("Contrasena");
-        mContrasena.addContent(usuario.getContraseña());
-
-        mUsuario.addContent(mContrasena);
-
-        return mUsuario;
-
-    } // generEstudianteXML        
-
-    private String xmlToString(Element element) {
-        XMLOutputter output = new XMLOutputter(Format.getCompactFormat());
-        String xmlStringElement = output.outputString(element);
-        xmlStringElement = xmlStringElement.replace("\n", "");
-        return xmlStringElement;
-    } // xmlToString 
-
-    private Element stringToXML(String stringMensaje) throws JDOMException, IOException {
-        SAXBuilder saxBuilder = new SAXBuilder();
-        StringReader stringReader = new StringReader(stringMensaje);
-        Document doc = saxBuilder.build(stringReader);
-        return doc.getRootElement();
-    } // stringToXML   
-
-    private Usuario xmlAUsuario(Element elementoActual) {
-
-        Usuario usuarioActual = new Usuario();
-        usuarioActual.setNombre(elementoActual.getAttributeValue("nombre"));
-        usuarioActual.setContraseña(elementoActual.getChild("Contrasena").getValue());
-
-        return usuarioActual;
-
-    } // xmlAEstudiante
-
-    public PrintStream getSend() {
-        return send;
-    }
-
-    public void setSend(PrintStream send) {
-        this.send = send;
-    }
-
-    public BufferedReader getReceive() {
-        return receive;
-    }
-
-    public void setReceive(BufferedReader receive) {
-        this.receive = receive;
     }
 
     public boolean getLogueado() {
@@ -205,48 +141,83 @@ public class MyClient extends Thread {
         this.filename = filename;
     }
 
+    public void pedirArchivo(String nombre) throws IOException {
+
+        this.sendArchivo.writeUTF("pedirArchivo");
+        this.sendArchivo.writeUTF(nombre);
+
+        //identificarse();
+        //this.send.writeUTF(Utility.AVISODESCARGA);
+        //this.send.writeUTF(this.filename);
+        //String mensaje = this.receive.readUTF();
+        byte readbytes[] = new byte[1024];
+        InputStream in = this.socket.getInputStream();
+        System.out.println("FILE: " + nombre);
+        //"usuarios" + "\\" + this.usuarioAtentiendose.getNombre() + "\\" + filename
+
+        try (OutputStream file = Files.newOutputStream(Paths.get("usuarios\\" + this.nombreUsuario.trim() + "\\" + nombre.trim()))) {
+            System.out.println("FILE: jhavsgvasvu ");
+            for (int read = -1; (read = in.read(readbytes)) >= 0;) {
+                //System.out.println("FILE: " + nombre);
+                file.write(readbytes, 0, read);
+                if (read < 1024) {
+                    break;
+                }
+            }
+            System.out.println("SALI SAJSAS");
+            file.flush();
+            file.close();
+        }
+        System.out.println("sali del ciclo");
+
+        this.receiveArchivo.close();
+        this.socket = new Socket(this.address, 5025);
+        this.receiveArchivo = new DataInputStream(this.socket.getInputStream());
+        this.sendArchivo = new DataOutputStream(this.socket.getOutputStream());
+        in.close();
+
+        try {
+            sleep(200);
+            this.sendArchivo.writeUTF("quiensoy");
+            this.sendArchivo.writeUTF("Luis");
+        } catch (InterruptedException ex) {
+            Logger.getLogger(MyClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // this.hiloSalir = false;
+    }
+
     public void enviarArchivo() throws FileNotFoundException, IOException {
 
-        if (!this.filename.equalsIgnoreCase("")) {
-            int lectura;
+        this.sendArchivo.writeUTF("cargarArchivo");
 
-            BufferedInputStream outputFile = new BufferedInputStream(new FileInputStream(new File(this.filename)));
-
-            byte byteArray[] = new byte[1024];
+        if (!this.nombreEnviar.equalsIgnoreCase("")) {
 
             /* Avisa al servidor que se le enviara un archivo /
             this.send.writeUTF(Utility.AVISOENVIO);
 
             / Se envia el nombre del archivo */
-            Element elementoActual = new Element("MandarArch");
-            Element mAccion = new Element("accion");
-            mAccion.addContent("cargarArchivo");
-            Element mArchivo = new Element("archivo");
-            mArchivo.addContent(this.nombreEnviar);
-            elementoActual.addContent(mAccion);
-            elementoActual.addContent(mArchivo);
+            this.sendArchivo.writeUTF(this.nombreEnviar);
 
-            this.send.println(xmlToString(elementoActual));
+            byte byteArray[] = null;
+            byteArray = Files.readAllBytes(Paths.get(this.filename));
+            this.sendArchivo.write(byteArray);
+            this.sendArchivo.flush();
 
-            while ((lectura = outputFile.read(byteArray)) != -1) {
-                this.send.write(byteArray, 0, lectura);
+            this.sendArchivo.close();
+            this.socket = new Socket(this.address, 5025);
+            this.sendArchivo = new DataOutputStream(this.socket.getOutputStream());
+            try {
+                // this.accion = Utility.IDENTIFICAR;
+                sleep(200);
+                this.sendArchivo.writeUTF("quiensoy");
+                this.sendArchivo.writeUTF("Luis");
+            } catch (InterruptedException ex) {
+                Logger.getLogger(MyClient.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             this.filename = "";
-            outputFile.close();
         }
-    }
-
-    public void pedirArchivo(String nombre) {
-        Element elementoActual = new Element("PedirArch");
-        Element mAccion = new Element("accion");
-        mAccion.addContent("pedirArchivo");
-        Element mArchivo = new Element("archivo");
-        mArchivo.addContent(nombre);
-        elementoActual.addContent(mAccion);
-        elementoActual.addContent(mArchivo);
-
-        this.send.println(xmlToString(elementoActual));
     }
 
     public String getNombreEnviar() {

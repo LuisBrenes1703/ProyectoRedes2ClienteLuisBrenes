@@ -14,8 +14,8 @@ public class Proyecto1ClienteLuisBrenes {
         ipServidor = JOptionPane.showInputDialog("Digite la ip del servidor");
         
         if (ipServidor != "") {
-            JFrame jFrame = new JFrame("Batalla de castillo");
-            jFrame.add(new VentanaPrincipal("192.168.1.3"));
+            JFrame jFrame = new JFrame("Proyecto redes");
+            jFrame.add(new VentanaPrincipal(ipServidor));
 //            jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //            jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); 
 //            jFrame.setDefaultCloseOperation(0);
