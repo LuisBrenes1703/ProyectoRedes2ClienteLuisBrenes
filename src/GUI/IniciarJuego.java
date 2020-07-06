@@ -92,7 +92,7 @@ public class IniciarJuego extends JFrame implements ActionListener {
                 //System.out.println(jugadorAceptado + "  interfaz boleano");
 
                 if (this.jugadorAceptado == true) {
-
+                    this.myClient.setNombreUsuario(this.usuario.getNombre());
                     System.out.println("el cliente se logueo con exito");
 
                     File directorio = new File("usuarios\\" + this.usuario.getNombre());
@@ -105,13 +105,15 @@ public class IniciarJuego extends JFrame implements ActionListener {
                     }
 
                     dispose();
+
+                    /*
                     VentanaDelCliente ventana;
                     ventana = new VentanaDelCliente(this.myClient, this.usuario.getNombre());
                     ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                     ventana.setVisible(true);
                     ventana.setLocationRelativeTo(null);
                     ventana.setResizable(false);
-
+                     */
                 }
 
             } catch (IOException ex) {

@@ -47,7 +47,7 @@ public class VentanaDelCliente extends JFrame implements Runnable, ActionListene
         super("crearUnirPartida");
 
         this.myClient = cliente;
-        this.myClient.setNombreUsuario(usuario);
+        
         this.usuario = usuario;
         this.setLayout(null);
         this.setSize(800, 750);
@@ -66,12 +66,7 @@ public class VentanaDelCliente extends JFrame implements Runnable, ActionListene
     @Override
     public void run() {
         while (this.ejecutar) {
-            System.out.println("");
-            if (this.pintarArchivos < this.myClient.getArchivosCliente().size()) {
-                System.out.println("Agregue un archivo");
-                this.comboArchivos.addItem(this.myClient.getArchivosCliente().get(this.pintarArchivos) + "\n");
-                this.pintarArchivos++;
-            }
+
         }
     }
 
